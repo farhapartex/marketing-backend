@@ -6,4 +6,5 @@ router = DefaultRouter()
 
 urlpatterns = [
     re_path(r"^api/v1/token/", views.UserAUthTokenView.as_view()),
+    re_path(r"^api/v1/registration/", views.UserRegistrationAPIView.as_view()),
 ]

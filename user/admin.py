@@ -10,4 +10,4 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(models.UserActivation)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "key", "valid_till",)
+    list_display = ("id", "user", "valid_till", "is_used", "key", )

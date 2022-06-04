@@ -14,10 +14,20 @@ class UserAUthTokenView(jwt_views.TokenObtainPairView):
 class UserRegistrationAPIView(rest_views.APIView):
     def post(self, request):
         serializer = serializers.UserRegistrationSerializer(data=request.data)
-        if not serializer.is_valid():
-            return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
         try:
             serializer.save()
             return response.Response(serializer.data, status=status.HTTP_200_OK)
+        except dj_utils.IntegrityError:
+            return response.Response({"detail": "Can't register with the email."}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+
+class UserAccountActivationAPIView(rest_views.APIView):
+    def post(self, request):
+        serializer = serializers.UserActivationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.save()
+            return response.Response({}, status=status.HTTP_200_OK)
         except dj_utils.IntegrityError:
             return response.Response({"detail": "Can't register with the email."}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)

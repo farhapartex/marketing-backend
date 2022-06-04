@@ -7,9 +7,6 @@ from core import base_model
 from user import constants
 
 
-# Create your models here.
-
-
 class User(auth_model.AbstractUser):
     role = models.CharField(max_length=50, choices=constants.RoleType.choices)
 
@@ -17,8 +14,8 @@ class User(auth_model.AbstractUser):
         return self.username
 
     @classmethod
-    def get_user_by_email(cls, email):
-        return cls.objects.get(email=email)
+    def get_user(cls, payload:dict):
+        return cls.objects.get(**payload)
 
 
 class UserActivation(base_model.BaseAbstractModel):
@@ -35,7 +32,14 @@ class UserActivation(base_model.BaseAbstractModel):
         data = {
             'user': user,
             'key': str(tokens.RefreshToken.for_user(user)),
-            'valid_till': timezone.now() + timedelta(days=2)  # Activation key will be valid for 2 days after creation
+            'valid_till': timezone.now() + timedelta(days=1)  # Activation key will be valid for 2 days after creation
         }
 
         cls.objects.create(**data)
+
+    @classmethod
+    def get_user_from_token(cls, token: str):
+        token_payload = tokens.UntypedToken(token).payload
+        user_id = token_payload["user_id"]
+        return User.get_user({"id": user_id})
+

@@ -26,6 +26,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DEBUG = os.getenv('DEBUG')
 SECRET_KEY = os.getenv('SECRET_KEY')
 
+# Sendgrid email configuration
+EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+# Toggle sandbox mode (when running in DEBUG mode)
+SENDGRID_SANDBOX_MODE_IN_DEBUG=True
+# echo to stdout or any other file-like object that is passed to the backend via the stream kwarg.
+SENDGRID_ECHO_TO_STDOUT=True
+# Email template ids
+EMAIL_FROM = os.getenv("EMAIL_FROM")
+ACCOUNT_ACTIVATION_TEMPLATE_ID = os.getenv("ACCOUNT_ACTIVATION_TEMPLATE_ID")
+ACCOUNT_ACTIVATION_CONFIRM_TEMPLATE_ID = os.getenv("ACCOUNT_ACTIVATION_CONFIRM_TEMPLATE_ID")
+
 ALLOWED_HOSTS = []
 
 
@@ -147,3 +159,5 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1)
 }
+
+FRONTEND_URL = os.getenv("FRONTEND_URL")

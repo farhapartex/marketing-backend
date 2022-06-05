@@ -35,7 +35,7 @@ class UserActivation(base_model.BaseAbstractModel):
             'valid_till': timezone.now() + timedelta(days=1)  # Activation key will be valid for 2 days after creation
         }
 
-        cls.objects.create(**data)
+        return cls.objects.create(**data)
 
     @classmethod
     def get_user_from_token(cls, token: str):

@@ -3,8 +3,14 @@ from django.db import utils as dj_utils
 from rest_framework_simplejwt import views as jwt_views
 from rest_framework import views as rest_views
 from rest_framework import response, status
-from user import serializers
+from user import serializers, tasks
 # Create your views here.
+
+
+class TestAPiView(rest_views.APIView):
+    def get(self, request):
+        tasks.send_auth_email.delay()
+        return response.Response({}, status=status.HTTP_200_OK)
 
 
 class UserAUthTokenView(jwt_views.TokenObtainPairView):

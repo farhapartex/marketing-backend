@@ -1,11 +1,18 @@
+from abc import ABCMeta, abstractmethod, ABC
 from django.db import transaction
 from django.utils import timezone
 from django.conf import settings
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt import tokens, exceptions
 from rest_framework import serializers, status
-from user import models, send_email, email_constant, tasks
+from user import models, send_email, email_constant, tasks, utils
 from core import exceptions as custom_exceptions
+
+
+class BaseUserSerializer(serializers.Serializer):
+    first_name = serializers.RegexField(regex=r"^(?=.{1,40}$)[a-zA-Z]+(?:[-'\s][a-zA-Z]+)*$")
+    last_name = serializers.RegexField(regex=r"^(?=.{1,40}$)[a-zA-Z]+(?:[-'\s][a-zA-Z]+)*$")
+    email = serializers.EmailField(required=True, max_length=150)
 
 
 class UserAuthTokenSerializer(TokenObtainPairSerializer):
@@ -22,10 +29,7 @@ class UserAuthTokenSerializer(TokenObtainPairSerializer):
         return data
 
 
-class UserRegistrationSerializer(serializers.Serializer):
-    first_name = serializers.RegexField(regex=r"^(?=.{1,40}$)[a-zA-Z]+(?:[-'\s][a-zA-Z]+)*$")
-    last_name = serializers.CharField(required=True, max_length=150)
-    email = serializers.EmailField(required=True, max_length=150)
+class UserRegistrationSerializer(BaseUserSerializer):
 
     def create(self, validated_data):
         validated_data["role"] = "customer"
@@ -34,19 +38,7 @@ class UserRegistrationSerializer(serializers.Serializer):
         with transaction.atomic():
             validated_data['is_active'] = False
             user = models.User.objects.create(**validated_data)
-            # create account activation information
-            user_activation_instance = models.UserActivation.create_activation_instance(user)
-
-            # send email
-            # full_name = f"{user.first_name} {user.last_name}"
-            # TO_EMAILS = [{"email": user.email, "name": full_name}]
-            # auth_email = send_email.AuthEmail(settings.EMAIL_FROM, TO_EMAILS, "Active your account!")
-            dynamic_template_data ={
-                "name": f"{user.first_name} {user.last_name}",
-                "link": f"{settings.FRONTEND_URL}/account-activation?token={user_activation_instance.key}"
-            }
-            tasks.send_auth_email.delay(user.id, dynamic_template_data, "Active your account!", email_constant.ACCOUNT_ACTIVATION_TEMPLATE_ID)
-            #auth_email.send_mail(dynamic_template_data=dynamic_template_data, template_id=email_constant.ACCOUNT_ACTIVATION_TEMPLATE_ID)
+            utils.generate_account_activation_token_send_email(user=user)
             return user
 
 
@@ -59,7 +51,8 @@ class UserActivationSerializer(serializers.Serializer):
         try:
             user = models.UserActivation.get_user_from_token(token)
         except exceptions.TokenError:
-            raise custom_exceptions.SerializerValidationError(status.HTTP_422_UNPROCESSABLE_ENTITY, "token", "Activation key invalid.")
+            raise custom_exceptions.SerializerValidationError(status.HTTP_422_UNPROCESSABLE_ENTITY, "token",
+                                                              "Activation key invalid.")
 
         user_activation_instance = models.UserActivation.get_instance({"user": user, "key": token, "is_used": False})
         if user_activation_instance is None or user_activation_instance.valid_till < timezone.now():
@@ -97,3 +90,23 @@ class UserActivationSerializer(serializers.Serializer):
                              template_id=email_constant.ACCOUNT_ACTIVATION_CONFIRM_TEMPLATE_ID)
 
         return user_activation_instance
+
+
+class UserCreationSerializer(BaseUserSerializer):
+    role = serializers.ChoiceField(choices=[("admin", "Admin"), ("customer", "Customer")])
+
+    def validate(self, attrs):
+        email = attrs["email"]
+        user = models.User.get_user({"username": email})
+        if user:
+            raise custom_exceptions.SerializerValidationError(status.HTTP_422_UNPROCESSABLE_ENTITY, "email",
+                                                              "Can't create user with the provided email.")
+        return attrs
+
+    def create(self, validated_data):
+        validated_data["is_active"] = False
+        validated_data["username"] = validated_data["email"]
+        with transaction.atomic():
+            user = models.User.objects.create(**validated_data)
+            utils.generate_account_activation_token_send_email(user=user)
+            return user

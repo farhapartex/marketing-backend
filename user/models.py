@@ -14,8 +14,8 @@ class User(auth_model.AbstractUser):
         return self.username
 
     @classmethod
-    def get_user(cls, payload:dict):
-        return cls.objects.get(**payload)
+    def get_user(cls, payload: dict):
+        return cls.objects.filter(**payload).first()
 
 
 class UserActivation(base_model.BaseAbstractModel):
@@ -42,4 +42,3 @@ class UserActivation(base_model.BaseAbstractModel):
         token_payload = tokens.UntypedToken(token).payload
         user_id = token_payload["user_id"]
         return User.get_user({"id": user_id})
-

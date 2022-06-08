@@ -6,3 +6,5 @@ class RoleType(DjangoChoices):
     employee = ChoiceItem("employee")
     customer = ChoiceItem("customer")
 
+
+ACCOUNT_ACTIVATION_EMAIL_SUBJECT = "Active your account!"

@@ -6,7 +6,8 @@ router = DefaultRouter()
 
 urlpatterns = [
     re_path(r"^api/v1/test-api/", views.TestAPiView.as_view()),
-    re_path(r"^api/v1/token/", views.UserAUthTokenView.as_view()),
+    re_path(r"^api/v1/token/", views.UserAuthTokenView.as_view()),
     re_path(r"^api/v1/registration/", views.UserRegistrationAPIView.as_view()),
     re_path(r"^api/v1/account-activation/", views.UserAccountActivationAPIView.as_view()),
+    re_path(r"^api/v1/create-user/", views.UserCreationAPIView.as_view()),
 ]

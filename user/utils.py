@@ -2,7 +2,7 @@ from django.conf import settings
 from user import models, email_constant, tasks, constants
 
 
-def generate_account_activation_token_send_email(self, user: models.User):
+def generate_account_activation_token_send_email( user: models.User):
     # create account activation information
     user_activation_instance = models.UserActivation.create_activation_instance(user)
     # send email to active account

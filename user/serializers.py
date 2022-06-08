@@ -106,6 +106,7 @@ class UserCreationSerializer(BaseUserSerializer):
     def create(self, validated_data):
         validated_data["is_active"] = False
         validated_data["username"] = validated_data["email"]
-        user = models.User.objects.create(**validated_data)
-        utils.generate_account_activation_token_send_email(user=user)
-        return user
+        with transaction.atomic():
+            user = models.User.objects.create(**validated_data)
+            utils.generate_account_activation_token_send_email(user=user)
+            return user

@@ -110,3 +110,9 @@ class UserCreationSerializer(BaseUserSerializer):
             user = models.User.objects.create(**validated_data)
             utils.generate_account_activation_token_send_email(user=user)
             return user
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.User
+        fields = ("id", "first_name", "last_name", "username", "email", "is_active", "role",)

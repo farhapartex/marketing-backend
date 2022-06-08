@@ -10,4 +10,5 @@ urlpatterns = [
     re_path(r"^api/v1/registration/", views.UserRegistrationAPIView.as_view()),
     re_path(r"^api/v1/account-activation/", views.UserAccountActivationAPIView.as_view()),
     re_path(r"^api/v1/create-user/", views.UserCreationAPIView.as_view()),
+    re_path(r"^api/v1/users/", views.UserListAPIView.as_view()),
 ]

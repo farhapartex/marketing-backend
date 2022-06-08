@@ -1,9 +1,11 @@
 from django.shortcuts import render
 from django.db import utils as dj_utils
 from rest_framework_simplejwt import views as jwt_views
-from rest_framework import views as rest_views
-from rest_framework import response, status
-from user import serializers, tasks
+from rest_framework import generics, views as rest_views
+from rest_framework import response, status, permissions as drf_permissions
+from user import serializers, tasks, permissions, models
+
+
 # Create your views here.
 
 
@@ -25,7 +27,8 @@ class UserRegistrationAPIView(rest_views.APIView):
             serializer.save()
             return response.Response(serializer.data, status=status.HTTP_200_OK)
         except dj_utils.IntegrityError:
-            return response.Response({"detail": "Can't register with the email."}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            return response.Response({"detail": "Can't register with the email."},
+                                     status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class UserAccountActivationAPIView(rest_views.APIView):
@@ -36,7 +39,8 @@ class UserAccountActivationAPIView(rest_views.APIView):
             serializer.save()
             return response.Response({}, status=status.HTTP_200_OK)
         except dj_utils.IntegrityError:
-            return response.Response({"detail": "Can't register with the email."}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            return response.Response({"detail": "Can't register with the email."},
+                                     status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class UserCreationAPIView(rest_views.APIView):
@@ -46,3 +50,8 @@ class UserCreationAPIView(rest_views.APIView):
         serializer.save()
         return response.Response({}, status=status.HTTP_200_OK)
 
+
+class UserListAPIView(generics.ListAPIView):
+    queryset = models.User.objects.all()
+    permission_classes = (drf_permissions.IsAuthenticated, permissions.IsAdmin)
+    serializer_class = serializers.UserSerializer

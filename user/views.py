@@ -44,6 +44,8 @@ class UserAccountActivationAPIView(rest_views.APIView):
 
 
 class UserCreationAPIView(rest_views.APIView):
+    permission_classes = (drf_permissions.IsAuthenticated, permissions.IsAdmin)
+    
     def post(self, request):
         serializer = serializers.UserCreationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

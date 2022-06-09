@@ -3,7 +3,7 @@ from django.db import utils as dj_utils
 from rest_framework_simplejwt import views as jwt_views
 from rest_framework import generics, views as rest_views
 from rest_framework import response, status, permissions as drf_permissions
-from user import serializers, tasks, permissions, models
+from user import serializers, tasks, permissions, models, utils
 
 
 # Create your views here.
@@ -57,3 +57,16 @@ class UserListAPIView(generics.ListAPIView):
     queryset = models.User.objects.all()
     permission_classes = (drf_permissions.IsAuthenticated, permissions.IsAdmin)
     serializer_class = serializers.UserSerializer
+
+
+class UserAccountActivationEmailAPIView(rest_views.APIView):
+    permission_classes = (drf_permissions.IsAuthenticated, permissions.IsAdmin)
+
+    def post(self, request):
+        serializer = serializers.UserAccountActivationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.initial_data['user']
+        if user.is_active:
+            return response.Response({"detail": "User is active!"}, status=status.HTTP_400_BAD_REQUEST)
+        utils.generate_account_activation_token_send_email(user=user)
+        return response.Response({"detail": "Activation email sent!"}, status=status.HTTP_200_OK)

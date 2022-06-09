@@ -9,7 +9,15 @@ from user import models, send_email, email_constant, tasks, utils
 from core import exceptions as custom_exceptions
 
 
-class BaseUserSerializer(serializers.Serializer):
+class BaseAbstractSerializer(serializers.Serializer):
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+
+
+class BaseUserSerializer(BaseAbstractSerializer):
     first_name = serializers.RegexField(regex=r"^(?=.{1,40}$)[a-zA-Z]+(?:[-'\s][a-zA-Z]+)*$")
     last_name = serializers.RegexField(regex=r"^(?=.{1,40}$)[a-zA-Z]+(?:[-'\s][a-zA-Z]+)*$")
     email = serializers.EmailField(required=True, max_length=150)
@@ -42,7 +50,7 @@ class UserRegistrationSerializer(BaseUserSerializer):
             return user
 
 
-class UserActivationSerializer(serializers.Serializer):
+class UserActivationSerializer(BaseAbstractSerializer):
     key = serializers.CharField()
     password = serializers.RegexField(regex=r'[A-Za-z0-9*@#$%^&+=]{8,}')
 
@@ -116,3 +124,16 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.User
         fields = ("id", "first_name", "last_name", "username", "email", "is_active", "role",)
+
+
+class UserAccountActivationSerializer(BaseAbstractSerializer):
+    email = serializers.EmailField(required=True, max_length=150)
+
+    def is_valid(self, raise_exception=False):
+        super().is_valid(raise_exception=raise_exception)
+        user = models.User.get_user({"username": self.initial_data['email']})
+        if not user:
+            raise custom_exceptions.SerializerValidationError(status.HTTP_422_UNPROCESSABLE_ENTITY, "email",
+                                                              "User not found with the provided email")
+        self.initial_data['user'] = user
+        return True

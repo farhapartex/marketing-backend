@@ -123,7 +123,7 @@ class UserCreationSerializer(BaseUserSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.User
-        fields = ("id", "first_name", "last_name", "username", "email", "is_active", "role",)
+        fields = ("id", "first_name", "last_name", "username", "email", "is_active", "role", "date_joined")
 
 
 class UserAccountActivationSerializer(BaseAbstractSerializer):

@@ -54,7 +54,7 @@ class UserCreationAPIView(rest_views.APIView):
 
 
 class UserListAPIView(generics.ListAPIView):
-    queryset = models.User.objects.all()
+    queryset = models.User.objects.all().order_by('-id')
     permission_classes = (drf_permissions.IsAuthenticated, permissions.IsAdmin)
     serializer_class = serializers.UserSerializer
 

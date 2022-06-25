@@ -6,8 +6,16 @@ class BaseAbstractModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     @classmethod
+    def _filter_data(cls, payload: dict):
+        return cls.objects.filter(**payload)
+
+    @classmethod
     def get_instance(cls, payload: dict):
-        return cls.objects.filter(**payload).first()
+        return cls._filter_data(payload).first()
+
+    @classmethod
+    def get_filter_data(cls, payload: dict):
+        return cls._filter_data(payload)
 
     class Meta:
         abstract = True

@@ -6,18 +6,10 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt import tokens, exceptions
 from rest_framework import serializers, status
 from user import models, send_email, email_constant, tasks, utils
-from core import exceptions as custom_exceptions
+from core import base_serializer, exceptions as custom_exceptions
 
 
-class BaseAbstractSerializer(serializers.Serializer):
-    def create(self, validated_data):
-        pass
-
-    def update(self, instance, validated_data):
-        pass
-
-
-class BaseUserSerializer(BaseAbstractSerializer):
+class BaseUserSerializer(base_serializer.BaseAbstractSerializer):
     first_name = serializers.RegexField(regex=r"^(?=.{1,40}$)[a-zA-Z]+(?:[-'\s][a-zA-Z]+)*$")
     last_name = serializers.RegexField(regex=r"^(?=.{1,40}$)[a-zA-Z]+(?:[-'\s][a-zA-Z]+)*$")
     email = serializers.EmailField(required=True, max_length=150)
@@ -50,7 +42,7 @@ class UserRegistrationSerializer(BaseUserSerializer):
             return user
 
 
-class UserActivationSerializer(BaseAbstractSerializer):
+class UserActivationSerializer(base_serializer.BaseAbstractSerializer):
     key = serializers.CharField()
     password = serializers.RegexField(regex=r'[A-Za-z0-9*@#$%^&+=]{8,}')
 
@@ -59,12 +51,15 @@ class UserActivationSerializer(BaseAbstractSerializer):
         try:
             user = models.UserActivation.get_user_from_token(token)
         except exceptions.TokenError:
-            raise custom_exceptions.SerializerValidationError(status.HTTP_422_UNPROCESSABLE_ENTITY, "token",
+            raise custom_exceptions.SerializerValidationError(status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                                              "token",
                                                               "Activation key invalid.")
 
-        user_activation_instance = models.UserActivation.get_instance({"user": user, "key": token, "is_used": False})
+        user_activation_instance = models.UserActivation.get_instance(
+            {"user": user, "key": token, "is_used": False})
         if user_activation_instance is None or user_activation_instance.valid_till < timezone.now():
-            raise custom_exceptions.SerializerValidationError(status.HTTP_422_UNPROCESSABLE_ENTITY, "token",
+            raise custom_exceptions.SerializerValidationError(status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                                              "token",
                                                               "Activation key invalid.")
 
         if user.is_active is True:
@@ -88,7 +83,8 @@ class UserActivationSerializer(BaseAbstractSerializer):
         # send email
         full_name = f"{user.first_name} {user.last_name}"
         TO_EMAILS = [{"email": user.email, "name": full_name}]
-        auth_email = send_email.AuthEmail(settings.EMAIL_FROM, TO_EMAILS, "Congratulation! Your account activated")
+        auth_email = send_email.AuthEmail(settings.EMAIL_FROM, TO_EMAILS,
+                                          "Congratulation! Your account activated")
         dynamic_template_data = {
             "name": full_name,
             "login_url": f"{settings.FRONTEND_URL}/login",
@@ -107,7 +103,8 @@ class UserCreationSerializer(BaseUserSerializer):
         email = attrs["email"]
         user = models.User.get_user({"username": email})
         if user:
-            raise custom_exceptions.SerializerValidationError(status.HTTP_422_UNPROCESSABLE_ENTITY, "email",
+            raise custom_exceptions.SerializerValidationError(status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                                              "email",
                                                               "Can't create user with the provided email.")
         return attrs
 
@@ -123,17 +120,19 @@ class UserCreationSerializer(BaseUserSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.User
-        fields = ("id", "first_name", "last_name", "username", "email", "is_active", "role", "date_joined")
+        fields = (
+        "id", "first_name", "last_name", "username", "email", "is_active", "role", "date_joined")
 
 
-class UserAccountActivationSerializer(BaseAbstractSerializer):
+class UserAccountActivationSerializer(base_serializer.BaseAbstractSerializer):
     email = serializers.EmailField(required=True, max_length=150)
 
     def is_valid(self, raise_exception=False):
         super().is_valid(raise_exception=raise_exception)
         user = models.User.get_user({"username": self.initial_data['email']})
         if not user:
-            raise custom_exceptions.SerializerValidationError(status.HTTP_422_UNPROCESSABLE_ENTITY, "email",
+            raise custom_exceptions.SerializerValidationError(status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                                              "email",
                                                               "User not found with the provided email")
         self.initial_data['user'] = user
         return True

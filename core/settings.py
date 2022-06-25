@@ -62,7 +62,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'user'
+    'user',
+    'social',
 ]
 
 MIDDLEWARE = [
@@ -170,3 +171,10 @@ SIMPLE_JWT = {
 }
 
 FRONTEND_URL = os.getenv("FRONTEND_URL")
+
+# Twitter integration information
+TWITTER_CLIENT_KEY = os.getenv("TWITTER_CLIENT_KEY")
+TWITTER_CLIENT_SECRET = os.getenv("TWITTER_CLIENT_SECRET")
+TWITTER_REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
+TWITTER_AUTHENTICATE_URL = "https://api.twitter.com/oauth/authenticate?oauth_token={0}"
+TWITTER_ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token'

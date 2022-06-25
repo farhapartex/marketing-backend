@@ -21,3 +21,10 @@ class SubmitTwitterAuthHandlerAPIView(views.APIView):
         utils.save_twitter_auth_token(user=request.user, oauth_token_varifier=serializer.validated_data.get("oauth_token_varifier"))
 
         return response.Response(data={"detail": "Twitter access token saved"}, status=status.HTTP_200_OK)
+
+
+class SocialAppListAPiView(views.APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        return response.Response(data=utils.social_app_list(user=request.user))

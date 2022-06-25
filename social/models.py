@@ -11,4 +11,5 @@ class SocialAuth(base_model.BaseAbstractModel):
     resource_owner_secret = models.CharField(max_length=300, blank=True, null=True)
     access_token = models.CharField(max_length=300, blank=True, null=True)
     access_token_secret = models.CharField(max_length=300, blank=True, null=True)
+    is_process_complete = models.BooleanField(default=False)
 

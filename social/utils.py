@@ -35,4 +35,19 @@ def save_twitter_auth_token(*, user: user_models.User, oauth_token_varifier: str
     access_token_secret = oauth_tokens.get('oauth_token_secret')
     social_auth_instance.access_token = access_token
     social_auth_instance.access_token_secret = access_token_secret
+    social_auth_instance.is_process_complete = True
     social_auth_instance.save()
+
+
+def social_app_list(*, user: user_models.User):
+    apps = []
+    for key in constants.APP_DICT:
+        app = models.SocialAuth.get_filter_data({"type": key, "user": user}).order_by("-id").first()
+        apps.append({
+            "type": key,
+            "title": constants.APP_DICT[key]["title"],
+            "description": constants.APP_DICT[key]["description"],
+            "is_process_complete": True if app and app.is_process_complete else False
+        })
+
+    return apps

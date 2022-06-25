@@ -5,4 +5,4 @@ from social import models
 
 @admin.register(models.SocialAuth)
 class SocialAuthAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "type")
+    list_display = ("id", "user", "type", "is_process_complete")

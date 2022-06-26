@@ -40,8 +40,8 @@ ACCOUNT_ACTIVATION_CONFIRM_TEMPLATE_ID = os.getenv("ACCOUNT_ACTIVATION_CONFIRM_T
 
 
 # Celery configuration
-BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+BROKER_URL = os.getenv('REDIS_BROKER_URL')
+CELERY_RESULT_BACKEND = os.getenv('REDIS_RESULT_URL')
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -110,7 +110,7 @@ DATABASES = {
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
-        'PORT': int(os.getenv('DB_PORT'))
+        'PORT': 5432
     }
 }
 

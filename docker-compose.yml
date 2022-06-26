@@ -1,0 +1,82 @@
+version: '3.7'
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./:/usr/src/app/
+    env_file:
+      - ./.env.dev
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+      - redis
+    networks:
+      - main
+    image:
+      app-image
+  db:
+    image: postgres:12.0-alpine
+    restart: always
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=marketingdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5433:5432
+    networks:
+      - main
+
+  redis:
+    image: redis:alpine
+    hostname: redis
+    command: redis-server --requirepass redis-test
+    environment:
+     - REDIS_REPLICATION_MODE=master
+    ports:
+      - '6379:6379'
+    expose:
+      - 6379
+    volumes:
+      - ./redis_data:/var/lib/redis/data/
+    networks:
+      - main
+
+  celery_worker:
+    restart: always
+    build: .
+    command: celery -A core worker -l info
+    env_file:
+      - ./.env.dev
+    links:
+      - db
+      - redis
+      - web
+    depends_on:
+      - web
+    hostname: celery_worker
+    image: app-image
+    networks:
+      - main
+
+  celery_beat:
+    restart: always
+    build: .
+    command: celery -A core beat -l info
+    env_file:
+      - ./.env.dev
+    links:
+      - celery_worker
+    depends_on:
+      - celery_worker
+    hostname: celery_beat
+    image: app-image
+    networks:
+      - main
+
+networks:
+  main:

@@ -1,7 +1,7 @@
 venv
 .idea
 __pycache__
-.env.dev
+.env
 .env
 postgres_data
 redis_data

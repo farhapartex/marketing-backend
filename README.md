@@ -3,7 +3,7 @@
 
 ### Docker commands
 * docker-compose exec web python manage.py migrate
-* docker-compose exec web python manage.py shell
+* docker-compose exec web python manage.py create_system_admin
 
 
 ### Celery commands
